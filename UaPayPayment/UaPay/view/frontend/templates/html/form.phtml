@@ -1,0 +1,27 @@
+<?
+$orderId = $block->getCheckoutSession()->getLastRealOrder()->getIncrementId();
+if($orderId) {
+    $order = $block->getOrderFactory()->create()->loadByIncrementId($orderId);
+    $payment = $order->getPayment();
+    if ($payment->getMethod() == $block->getPaymentCode()) {
+        if($payment->getLastTransId()){
+            ?><p><?=__('Your order is being processed') ?></p><?
+        } else {
+            $result = $block->getModelPayment()->createPayment($order);
+            if ($result['redirect']) {
+                ?>
+                <p><?= __('Thank you for your order, please click the button below to pay'); ?></p>
+                <br>
+                <br>
+                <a href="<?= $result['redirect'] ?>" class="action primary checkout"
+                   target="_blank"><?= __('Pay') ?></a>
+
+                <?
+            } else {
+                ?><p style="color: red;"><?= (!empty($result['response']) ? $result['response'] : $block->msgFail()) ?></p><?
+            }
+        }
+    }
+} else {
+    ?> <p style="color: red;"><?=$block->msgFail()?></p> <?
+}
